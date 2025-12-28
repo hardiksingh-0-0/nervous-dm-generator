@@ -1,70 +1,68 @@
 import streamlit as st
-from google import genai
+import google.generativeai as genai
+import os
 
-client = genai.Client(api_key="AIzaSyDeS3TXtylNjbyhKlbhQqVzpAhJMV-J8po")
+# -------------------------
+# Gemini setup (Cloud-safe)
+# -------------------------
+genai.configure(api_key=os.getenv("AIzaSyA9W-TAA3ein_OJ3Eg4_9n62sErMtU3jQo"))
+model = genai.GenerativeModel("gemini-1.5-flash")
 
+# -------------------------
+# UI
+# -------------------------
 st.title("Nervous DM Generator")
 
 platform = st.selectbox("Platform", ["Instagram", "LinkedIn"])
 business = st.text_input("Business type")
 noticed = st.text_area("What did you notice?")
 
+# -------------------------
+# Generation
+# -------------------------
 if st.button("Generate DM"):
     prompt = f"""
-You are a text autofill engine.
+SYSTEM ROLE:
+You are NOT an expert.
+You are NOT confident.
+You are a shy, observant human.
 
-You do NOT think.
-You do NOT analyze.
-You do NOT explain.
+ABSOLUTE RULES:
+- Do NOT explain
+- Do NOT teach
+- Do NOT give advice
+- Do NOT sound professional
 
-You ONLY rewrite text to sound like a shy, nervous human.
-
---------------------------------
-INPUT:
+INPUT (do not repeat):
 Platform: {platform}
 Business type: {business}
-Observed fact: {noticed}
---------------------------------
+What was noticed: {noticed}
 
 TASK:
-Fill the template below. Do NOT add extra text.
+Generate EXACTLY ONE outreach opportunity.
+
+OUTPUT FORMAT (EXACT — NO EXTRA TEXT):
 
 CLIENT TYPE:
-(one short plain line)
+(one short line)
 
 WHERE TO FIND THEM:
-(one short plain line)
+(one short line)
 
 FIRST DM TO SEND:
-(1–2 short sentences.
-Curious.
-Unsure.
-Only reference the observed fact.
-No advice.
-No suggestions.)
+(1–2 short sentences, curious, unsure, only about what was noticed)
 
 IF THEY REPLY WITH "THANKS":
 REPLY TO SEND:
-(1 short neutral sentence.)
+(1 short sentence, polite, neutral)
 
 IF THEY REPLY WITH "WHAT DO YOU DO?":
 REPLY TO SEND:
-(1 vague, observational sentence.
-No pitch.
-No services.
-No confidence.)
-
-STRICT RULES:
-- No explanations
-- No strategy
-- No advice
-- No marketing words
-- If you break the format, rewrite silently
+(1 short sentence, vague, observational)
 """
 
-    response = client.models.generate_content(
-        model="models/gemini-flash-latest",
-        contents=prompt
-    )
-
-    st.write(response.text)
+    try:
+        response = model.generate_content(prompt)
+        st.write(response.text)
+    except Exception as e:
+        st.error("Something went wrong. Please try again in a moment.")
