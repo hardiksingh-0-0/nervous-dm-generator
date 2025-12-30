@@ -1,8 +1,7 @@
 import streamlit as st
-import requests
-import json
+from openai import OpenAI
 
-API_KEY = st.secrets["GEMINI_API_KEY"]
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 st.title("Nervous DM Generator")
 
@@ -50,29 +49,10 @@ REPLY TO SEND:
 (1 vague observational sentence)
 """
 
-        url = (
-            "https://generativelanguage.googleapis.com/v1beta/"
-            "models/gemini-1.5-flash:generateContent"
-            f"?key={API_KEY}"
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
         )
 
-
-        payload = {
-            "contents": [
-                {
-                    "parts": [
-                        {"text": prompt}
-                    ]
-                }
-            ]
-        }
-
-        headers = {"Content-Type": "application/json"}
-
-        response = requests.post(url, headers=headers, data=json.dumps(payload))
-
-        if response.status_code != 200:
-            st.error(response.text)
-        else:
-            output = response.json()["candidates"][0]["content"]["parts"][0]["text"]
-            st.text(output)
+        st.text(response.choices[0].message.content)
