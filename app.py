@@ -1,15 +1,11 @@
 import streamlit as st
 import google.generativeai as genai
-import os
 
-
-
-# Load API key from Streamlit Secrets
+# Configure Gemini using Streamlit Secrets
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
-
-model = genai.GenerativeModel("models/gemini-1.5-flash")
-
+# Use a model that ALWAYS works on Streamlit Cloud
+model = genai.GenerativeModel("models/gemini-1.0-pro")
 
 st.title("Nervous DM Generator")
 
