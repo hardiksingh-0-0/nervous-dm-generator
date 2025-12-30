@@ -1,11 +1,8 @@
 import streamlit as st
-import google.generativeai as genai
+import requests
+import json
 
-# Configure Gemini using Streamlit Secrets
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-
-# Use a model that ALWAYS works on Streamlit Cloud
-model = genai.GenerativeModel("models/gemini-1.0-pro")
+API_KEY = st.secrets["GEMINI_API_KEY"]
 
 st.title("Nervous DM Generator")
 
@@ -53,5 +50,28 @@ REPLY TO SEND:
 (1 vague observational sentence)
 """
 
-        response = model.generate_content(prompt)
-        st.text(response.text)
+        url = (
+            "https://generativelanguage.googleapis.com/v1beta/"
+            "models/gemini-1.0-pro:generateContent"
+            f"?key={API_KEY}"
+        )
+
+        payload = {
+            "contents": [
+                {
+                    "parts": [
+                        {"text": prompt}
+                    ]
+                }
+            ]
+        }
+
+        headers = {"Content-Type": "application/json"}
+
+        response = requests.post(url, headers=headers, data=json.dumps(payload))
+
+        if response.status_code != 200:
+            st.error(response.text)
+        else:
+            output = response.json()["candidates"][0]["content"]["parts"][0]["text"]
+            st.text(output)
